@@ -1,0 +1,97 @@
+trainer:
+  target: paintmind.engine.trainer.VQGANTrainer
+  params:
+    num_epoch: 100
+    valid_size: 64
+    lr: 3.5e-4
+    lr_min: 5e-5
+    warmup_steps: 2000
+    warmup_lr_init: 1e-6
+    decay_steps: 25000
+    batch_size: 6
+    num_workers: 3
+    pin_memory: False
+    grad_accum_steps: 1
+    mixed_precision: 'no'
+    max_grad_norm: 1.0
+    save_every: 1000
+    sample_every: 1000
+    result_folder: "output"
+    log_dir: "output/logs"
+    model:
+      target: paintmind.stage1.vqmodel.VQModel
+      params:
+        embed_dim: 16
+        n_embed: 8192
+        n_slots: 32
+        slot_dim: 512
+        beta: 0.25
+        ckpt_path: None
+
+        encoder_config:
+          target: paintmind.stage1.layers.Encoder
+          params:
+            layer_type: normal
+            image_size: 256
+            patch_size: 8
+            num_slots: 64
+            dim: 512
+            depth: 8
+            num_head: 16
+            mlp_dim: 2048
+            in_channels: 3
+            dim_head: 32
+            dropout: 0.
+
+        decoder_config:
+          target: paintmind.stage1.layers.Decoder
+          params:
+            layer_type: normal
+            image_size: 256
+            patch_size: 8
+            in_channels: 512
+            num_slots: 64
+            dim: 512
+            depth: 8
+            num_head: 16 
+            mlp_dim: 2048 
+            out_channels: 3 
+            dim_head: 32
+            dropout: 0.
+        
+        # slot_attn_config:
+        #   target: paintmind.modules.ocl.perceptual_grouping.SlotAttentionGrouping
+        #   params:
+        #     feature_dim: 512
+        #     object_dim: 320
+        #     n_heads: 16
+        #     iters: 3
+        #     eps: 1e-8
+        
+        # mask2former_config:
+        #   target: paintmind.stage1.seghead.SegHead
+        #   params:
+        #     config_file: "configs/mask2former_panoptic.yaml"
+        #     in_channels: 512
+        #     origin: False
+        #     mid_channels: 320
+        #     out_channels: 512
+        #     fpn_config:
+        #       target: paintmind.modules.mask2former.fpn.FPN
+        #       params:
+        #         in_channels: 512
+        #         scale_factors: [2, 1, 0.5, 0.25]
+        #         strides: [2, 4, 8, 16]
+        #         out_channels: 512
+        #         norm: 'LN'
+        #         use_bias: False
+        #         slot_dim: 320
+        #         slot_channels: 320
+        #         fpn_names: ["res2", "res3", "res4", "res5"]
+    dataset:
+      target: paintmind.utils.datasets.CoCoPanoptic
+      params:
+        root: /home/zhenganlin/june/MSCOCO/
+        img_size: 256
+        scale: 0.8
+    
